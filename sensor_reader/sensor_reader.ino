@@ -30,13 +30,13 @@ struct digitalReading
 
 struct wireBytes
 {
-  analogReading analogReadings[sizeof(analogInputPinNums)];
-  digitalReading digitalReadings[sizeof(digitalInputPinNums)];
+  analogReading analogReadings[sizeof(analogInputPinNums) / sizeof(int)];
+  digitalReading digitalReadings[sizeof(digitalInputPinNums) / sizeof(int)];
 };
 
 
-pin analogInputPins[sizeof(analogInputPinNums)];
-pin digitalInputPins[sizeof(digitalInputPinNums)];
+pin analogInputPins[sizeof(analogInputPinNums) / sizeof(int)];
+pin digitalInputPins[sizeof(digitalInputPinNums) / sizeof(int)];
 
 
 // push a new state on to the front of the states queue
@@ -65,47 +65,63 @@ analogReading getAnalogReading(int index) {
   for (int i = 0; i < NUM_PIN_STATES; i++) {
     sum += analogPin.states[i];
   }
-  int average = sum / NUM_PIN_STATES;
+  unsigned int average = sum / NUM_PIN_STATES;
 
-  // the reading is only 10 bits, but we have 16 to work with and want
-  // the reading to sit in the 10 leftmost bits of the byte array
-  unsigned int shifted = ((unsigned int) average) << 6;
+  // the reading is only 10 bits, but we have 16 to work with, 
+  // the reading will sit in the 10 rightmost bits
+  return analogReading{{highByte(average), lowByte(average)}};
+}
 
-  return analogReading{{highByte(shifted), lowByte(shifted)}};
+digitalReading getDigitalReading(int index) {
+  pin digitalPin = digitalInputPins[index];
+  byte reading = 1;
+  for (int i = 0; i < NUM_PIN_STATES; i++) {
+    if (digitalPin.states[i] == 0) {
+      reading = 0;
+    }
+  }
+
+  return digitalReading{reading};
 }
 
 void setup() {
   // initialize all analog input pins to INPUT_PULLUP
-  setupPinGroup(analogInputPinNums, sizeof(analogInputPinNums), analogInputPins, INPUT_PULLUP, 0);
+  setupPinGroup(analogInputPinNums, sizeof(analogInputPinNums) / sizeof(int), analogInputPins, INPUT_PULLUP, 0);
 
   // initialize all digital input pins to INPUT_PULLUP
-  setupPinGroup(digitalInputPinNums, sizeof(digitalInputPinNums), digitalInputPins, INPUT_PULLUP, LOW);
+  setupPinGroup(digitalInputPinNums, sizeof(digitalInputPinNums) / sizeof(int), digitalInputPins, INPUT_PULLUP, LOW);
 
   // initialize all digital output pins to OUTPUT
-  for (int i = 0; i < sizeof(digitalOutputPinNums); i++) {
+  for (int i = 0; i < sizeof(digitalOutputPinNums) / sizeof(int); i++) {
     pinMode(digitalOutputPinNums[i], OUTPUT);
   }
   
-  Wire.begin(); // join i2c bus (address optional for master)
+//  Wire.begin(); // join i2c bus (address optional for master)
+  Serial.begin(9600);
+  delay(2000);
 }
 
 void loop() {
+  Serial.println("========================LOOP START===========================");
   wireBytes message = {0};
 
   // read the analog input pins
-  for (int i = 0; i < sizeof(analogInputPins); i++) {
+  for (int i = 0; i < sizeof(analogInputPins) / sizeof(pin); i++) {
     pushNewState(analogInputPins[i].states, analogRead(analogInputPins[i].pin));
     message.analogReadings[i] = getAnalogReading(i);
+    Serial.println(word(message.analogReadings[i].bytes[0],message.analogReadings[i].bytes[1]));
   }
 
   // read the digital input pins
-  for (int i = 0; i < sizeof(digitalInputPins); i++) {
+  for (int i = 0; i < sizeof(digitalInputPins) / sizeof(pin); i++) {
     pushNewState(digitalInputPins[i].states, digitalRead(digitalInputPins[i].pin));
+    message.digitalReadings[i] = getDigitalReading(i);
+    Serial.println(message.digitalReadings[i].bytes);
   }
 
-  Wire.beginTransmission(8); // transmit to device #8
-  Wire.write((byte *) &message, sizeof (message));
-  Wire.endTransmission();    // stop transmitting
+//  Wire.beginTransmission(8); // transmit to device #8
+//  Wire.write((byte *) &message, sizeof (message));
+//  Wire.endTransmission();    // stop transmitting
 
   delay(500);
 }
