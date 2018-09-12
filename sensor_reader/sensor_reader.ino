@@ -44,6 +44,7 @@ void loop() {
   ////////////////////////
   // TEMPERATURE SENSOR //
   ////////////////////////
+  // https://randomnerdtutorials.com/guide-for-ds18b20-temperature-sensor-with-arduino/
 
   // Call sensors.requestTemperatures() to issue a global temperature and Requests to all devices on the bus
   sensors.requestTemperatures(); 
