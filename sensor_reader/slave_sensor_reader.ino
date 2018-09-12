@@ -1,5 +1,4 @@
 #include <Wire.h>
-
 #define SLAVE_ADDRESS 0x04
 
 int number = 0;
