@@ -3,7 +3,7 @@ import os
 import subprocess
 import time
 try:
-    import RPIO as gpio
+    import RPi.GPIO as gpio
 except ImportError:
     # TODO(ramatevish): add mock for testing
     pass
@@ -67,7 +67,7 @@ class DigitalBinarySensor(Sensor):
     def read(self):
         if not self._ready:
             self._setup_pin()
-        reading = bool(gpio.input(self.pin))
+        reading = bool(gpio.input(self.pin)
         return reading if not self.invert else not reading
 
 
