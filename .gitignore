@@ -1,3 +1,5 @@
 .idea
 .DS_Store
 __pycache__
+grts.egg-info
+env

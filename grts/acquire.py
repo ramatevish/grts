@@ -1,7 +1,7 @@
 import time
 from logging import getLogger
 
-from sensors import W1TemperatureSensor
+from .sensors import W1TemperatureSensor, DigitalBinarySensor
 
 logger = getLogger(__name__)
 
@@ -18,7 +18,8 @@ class Readings:
 
 
 SENSORS = [
-    W1TemperatureSensor(name='temp1', serial='28-0213133348aa')
+    W1TemperatureSensor(name='temp1', serial='28-0213133348aa'),
+    DigitalBinarySensor(name='liquid1', pin=5)
 ]
 DATA = Readings(*SENSORS)
 
