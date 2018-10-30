@@ -11,7 +11,7 @@ class Sensor(metaclass=abc.ABCMeta):
 
     MAX_LEN = 120
 
-    def __init__(self, name, id_=None):
+    def __init__(self, *name, id_=None):
         self.name = name
         self.id = id_ or hash(name)
         self.data = []
@@ -43,7 +43,7 @@ class W1TemperatureSensor(Sensor):
     DEVICE_BASE_DIR = '/sys/bus/w1/devices'
     DEVICE_FILE = 'w1_slave'
 
-    def __init__(self, name, id_, serial):
+    def __init__(self, *, name, id_=None, serial):
         self.serial = serial
         super().__init__(name, id_)
 
