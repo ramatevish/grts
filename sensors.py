@@ -10,10 +10,17 @@ def _get_sensor(name):
 
 
 @click.command()
-@click.option('--sensor', '-s', multiple=True, default='', help='Which sensors should be checked.')
-def cli(sensor):
-    for name in sensor:
-        s = _get_sensor(name)
-        if s is None:
-            click.echo(err="Couldn't find sensor '%s'" % name)
-        click.echo("%s: %s" % (name, s.read()))
+@click.option('--list-all', '-a', multiple=True, default=False,
+              help='Check all sensors.')
+@click.option('--sensor', '-s', 'sensors', multiple=True, default='',
+              help='Specify which sensors should be checked.')
+def cli(sensors, list_all):
+    if list_all:
+        for sensor in SENSORS:
+            click.echo("%s: %s" % (sensor.name, sensor.read()))
+    else:
+        for sensor in sensors:
+            sensor = _get_sensor(sensor)
+            if sensor is None:
+                click.echo(err="Couldn't find sensor '%s'" % sensor)
+            click.echo("%s: %s" % (sensor.name, sensor.read()))

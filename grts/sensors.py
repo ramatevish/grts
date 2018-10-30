@@ -3,8 +3,9 @@ import os
 import subprocess
 import time
 try:
-    import RPi.GPIO as GPIO
+    import gpio
 except ImportError:
+    # TODO(ramatevish): add mock for testing
     pass
 import logging
 
@@ -52,20 +53,20 @@ class DigitalBinarySensor(Sensor):
         super().__init__(name=name, id_=id_)
 
     def _setup_pin(self):
-        GPIO.setmode(GPIO.BCM)
+        gpio.setmode(gpio.BCM)
 
         # Do this here so construction of sensor doesn't throw errors in non-pi envs
         pull_up_down = self.pull_up_down
         if pull_up_down is None:
-            pull_up_down = GPIO.PUD_DOWN
+            pull_up_down = gpio.PUD_DOWN
 
-        GPIO.setup(self.pin, GPIO.IN, pull_up_down=pull_up_down)
+        gpio.setup(self.pin, gpio.IN, pull_up_down=pull_up_down)
         self._ready = True
 
     def read(self):
         if not self._ready:
             self._setup_pin()
-        return GPIO.input(self.pin)
+        return gpio.input(self.pin)
 
 
 class W1TemperatureSensor(Sensor):
