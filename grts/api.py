@@ -1,6 +1,4 @@
-import json
-
-from flask import Blueprint
+from flask import Blueprint, jsonify
 
 from .acquire import DATA
 
@@ -19,7 +17,7 @@ def serialize_sensor(sensor):
 
 @sensors.route('/sensors')
 def sensor_data():
-    return json.dumps({
+    return jsonify({
         'sensors': [
             serialize_sensor(sensor) for sensor in DATA.sensors
         ]
