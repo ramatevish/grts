@@ -1,7 +1,7 @@
 import threading
 
-from acquire import poll_sensors
-from api import sensors
+from grts.acquire import poll_sensors
+from grts.api import sensors
 
 
 def make_app():
@@ -17,7 +17,3 @@ def start_server():
     app = make_app()
     threading.Thread(target=poll_sensors).start()
     app.run()
-
-
-if __name__ == '__main__':
-    start_server()

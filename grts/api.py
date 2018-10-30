@@ -2,13 +2,12 @@ import json
 
 from flask import Blueprint
 
-from sensors import Sensor
 from .acquire import DATA
 
 sensors = Blueprint('sensors', __name__)
 
 
-def serialize_sensor(sensor: Sensor):
+def serialize_sensor(sensor):
     return {
         'name': sensor.name,
         'cur_value': sensor.cur_value(),

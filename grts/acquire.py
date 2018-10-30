@@ -1,9 +1,9 @@
+import logging
 import time
-from logging import getLogger
 
-from .sensors import W1TemperatureSensor, DigitalBinarySensor
+from grts.sensors import W1TemperatureSensor, DigitalBinarySensor
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Readings:
