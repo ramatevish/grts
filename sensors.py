@@ -15,5 +15,5 @@ def cli(sensor):
     for name in sensor:
         s = _get_sensor(name)
         if s is None:
-            click.echo(err=f"Couldn't find sensor 'name'")
-        click.echo(f"'{name}': {s.read()}")
+            click.echo(err="Couldn't find sensor '%s'" % name)
+        click.echo("%s: %s" % (name, s.read()))
