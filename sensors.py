@@ -10,7 +10,7 @@ def _get_sensor(name):
 
 
 @click.command()
-@click.option('--list-all', '-a', multiple=True, default=False,
+@click.option('--list-all', '-a', is_flag=True, default=False,
               help='Check all sensors.')
 @click.option('--sensor', '-s', 'sensors', multiple=True, default='',
               help='Specify which sensors should be checked.')
