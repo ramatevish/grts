@@ -19,7 +19,7 @@ class Readings:
 
 SENSORS = [
     W1TemperatureSensor(name='temp1', serial='28-0213133348aa'),
-    DigitalBinarySensor(name='liquid1', pin=5)
+    DigitalBinarySensor(name='liquid1', pin=5, invert=True)
 ]
 DATA = Readings(*SENSORS)
 
