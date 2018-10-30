@@ -2,7 +2,8 @@ import json
 
 from flask import Blueprint
 
-from .acquire import DATA, Sensor
+from sensors import Sensor
+from .acquire import DATA
 
 sensors = Blueprint('sensors', __name__)
 

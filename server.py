@@ -10,6 +10,8 @@ def make_app():
     app = Flask(__name__)
     app.register_blueprint(sensors)
 
+    return app
+
 
 def start_server():
     app = make_app()
