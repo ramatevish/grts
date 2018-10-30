@@ -67,8 +67,13 @@ class DigitalBinarySensor(Sensor):
     def read(self):
         if not self._ready:
             self._setup_pin()
-        reading = bool(gpio.input(self.pin)
-        return reading if not self.invert else not reading
+        reading = gpio.input(self.pin)
+        if self.invert:
+            if reading == 1.0:
+                reading = 0.0
+            else:
+                reading = 1.0
+        return reading
 
 
 class W1TemperatureSensor(Sensor):
