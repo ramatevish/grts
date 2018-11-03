@@ -1,7 +1,11 @@
 import abc
 import os
+import re
 import subprocess
-import time
+
+from grts import events
+from grts.events import TemperatureEvent, BooleanEvent
+
 try:
     import RPi.GPIO as gpio
 except ImportError:
@@ -15,36 +19,26 @@ logger = logging.getLogger(__name__)
 
 class Sensor(metaclass=abc.ABCMeta):
 
-    MAX_LEN = 120
-
     def __init__(self, *, name, id_=None):
         self.name = name
         self.id = id_ or hash(name)
-        self.data = []
-
-    def add_reading(self, value):
-        if len(self.data) > self.MAX_LEN:
-            self.data.pop(0)
-        self.data.append(value)
-
-    def cur_value(self):
-        return self.data[-1]
-
-    def average(self):
-        return sum(self.data) / len(self.data)
-
-    def max(self):
-        return max(self.data)
-
-    def min(self):
-        return min(self.data)
 
     @abc.abstractmethod
-    def read(self):
+    def _get_reading(self):
         pass
 
+    @abc.abstractmethod
+    def _publish_event(self, reading):
+        pass
 
-class DigitalBinarySensor(Sensor):
+    def read(self):
+        reading = self._get_reading()
+        if reading is not None:
+            self._publish_event(reading)
+        return reading
+
+
+class DigitalBooleanSensor(Sensor):
 
     def __init__(self, *, name, id_=None, pin, pull_up_down=None, invert=False):
         self.pin = pin
@@ -64,16 +58,24 @@ class DigitalBinarySensor(Sensor):
         gpio.setup(self.pin, gpio.IN, pull_up_down=pull_up_down)
         self._ready = True
 
-    def read(self):
+    def _get_reading(self):
         if not self._ready:
             self._setup_pin()
-        reading = gpio.input(self.pin)
+        reading = gpio.input(self.pin) == 1.0
         if self.invert:
-            if reading == 1.0:
-                reading = 0.0
-            else:
-                reading = 1.0
+            reading = not reading
         return reading
+
+    def _publish_event(self, reading):
+        event = BooleanEvent(
+            metric_name=self.name,
+            value=reading,
+            dimensions=dict(
+                unit='Boolean',
+                name=self.name
+            )
+        )
+        events.publish(event)
 
 
 class W1TemperatureSensor(Sensor):
@@ -91,13 +93,7 @@ class W1TemperatureSensor(Sensor):
             self.DEVICE_BASE_DIR, self.serial, self.DEVICE_FILE
         )
 
-    def _read_temp(self):
-        f = open(self.device_file, 'r')
-        lines = f.readlines()
-        f.close()
-        return lines
-
-    def _read_temp_proc(self):
+    def _read_temp_file(self):
         proc = subprocess.Popen(
             ['cat', self.device_file],
             stdout=subprocess.PIPE,
@@ -105,16 +101,22 @@ class W1TemperatureSensor(Sensor):
         )
         out, err = proc.communicate()
         out_decode = out.decode('utf-8')
-        lines = out_decode.split('\n')
-        return lines
+        return out_decode
 
-    def read(self):
-        lines = self._read_temp_proc()
-        while lines[0].strip()[-3:] != 'YES':
-            time.sleep(0.2)
-            lines = self._read_temp_proc()
-        equals_pos = lines[1].find('t=')
-        if equals_pos != -1:
-            temp_string = lines[1][equals_pos + 2:]
-            temp_c = float(temp_string) / 1000.0
-            return temp_c
+    def _get_reading(self):
+        lines = self._read_temp_file()
+        reading = re.search(r'.*(YES)\n.*t=(\d+)', lines)
+        if reading is not None:
+            return float(reading.group(2)) / 1000.0
+
+    def _publish_event(self, reading):
+        event = TemperatureEvent(
+            metric_name=self.name,
+            value=reading,
+            dimensions=dict(
+                unit='Celsius',
+                name=self.name,
+                serial=self.serial
+            )
+        )
+        events.publish(event)

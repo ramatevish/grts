@@ -17,7 +17,7 @@ def _get_sensor(name):
 def cli(sensors, list_all):
     if list_all:
         for sensor in SENSORS:
-            click.echo("%s: %s" % (sensor.name, sensor.read()))
+            click.echo("%s: %s" % (sensor.name, sensor.read))
     else:
         for sensor in sensors:
             sensor = _get_sensor(sensor)
